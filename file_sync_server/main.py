@@ -8,6 +8,14 @@ from typing import List
 
 app = FastAPI()
 
+@app.delete("/delete")
+async def delete_files(filenames: List[str]):
+    for filename in filenames:
+        file_path = os.path.join("Files", filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    return {"deleted": filenames}
+
 @app.get("/files")
 async def download_files(filenames: str):
     # Split the comma-separated filenames into a list
@@ -45,14 +53,17 @@ class Item(BaseModel):
 @app.post("/compare_files")
 async def compare_files(files: Item):
     """Uploads a list of file names and returns a list of files not found in the 'Files' folder on the server side"""
-    local_files = set(os.listdir('Files'))
-    not_found = [file for file in files.files if file not in local_files]
+    archived_files = set(os.listdir('Archived'))
+    not_found = [file for file in files.files if file not in archived_files]
     return {"missing": not_found}
 
 @app.get("/list")
 async def list_files():
     """returns a list of files in the Files folder on server side"""
-    return {"files": os.listdir('Files')}
+    l = []
+    for file in os.listdir('Files'):
+        l.append([file, hashlib.md5(open(f'Files/{file}', "rb").read()).hexdigest()])
+    return {"files": l}
 
 @app.post("/uploadfile")
 async def create_upload_file(file: UploadFile, md5: str):
@@ -60,7 +71,8 @@ async def create_upload_file(file: UploadFile, md5: str):
     if hashlib.md5(f_data).hexdigest() != md5:
         return {"error": "md5 checksum failed"}
     with open(f'Files/{file.filename}', "wb") as f:
-        shutil.copyfileobj(file.file, f)
+        f.write(f_data)
+    shutil.copyfile(f'Files/{file.filename}', f'Archived/{file.filename}')
     return {"filename": file.filename}
 
 @app.post("/uploadzip")
@@ -71,6 +83,7 @@ async def upload_zip(file: UploadFile, md5: str):
     with open(f'{file.filename}', "wb") as f:
         f.write(f_data)
     shutil.unpack_archive(file.filename, 'Files')
+    shutil.unpack_archive(file.filename, 'Archived')
     os.remove(file.filename)
     return {"filename": file.filename}
 
@@ -79,4 +92,6 @@ if __name__ == '__main__':
     import uvicorn
     if "Files" not in os.listdir():
         os.mkdir("Files")
+    if "Archived" not in os.listdir():
+        os.mkdir("Archived")
     uvicorn.run(app, host='0.0.0.0', port=8000)
