@@ -77,4 +77,6 @@ async def upload_zip(file: UploadFile, md5: str):
 
 if __name__ == '__main__':
     import uvicorn
+    if "Files" not in os.listdir():
+        os.mkdir("Files")
     uvicorn.run(app, host='0.0.0.0', port=8000)
