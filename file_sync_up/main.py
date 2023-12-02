@@ -1,5 +1,7 @@
-import os, config, requests, hashlib, shutil
+import os, config, requests, hashlib, shutil, tempfile
 import time
+
+sync_folder_location = str(tempfile.gettempdir()) + "/driver-io-file-sync"
 
 # compare files with server
 # if file exist on server, delete file locally
@@ -31,7 +33,7 @@ def zip_file(files) -> str:
 def sync():
     while(True):
         # compare files with server
-        files = os.listdir(config.sync_folder_location)
+        files = os.listdir(sync_folder_location)
 
         try:
             response = requests.post(config.server_url + "/compare_files", json={"files": files}, timeout=5)
