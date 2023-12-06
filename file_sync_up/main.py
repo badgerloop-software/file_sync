@@ -21,7 +21,7 @@ def zip_file(files) -> str:
     os.makedirs(tmp_dir, exist_ok=True)
     # Copy each file from the "Files" directory to the temporary directory
     for filename in files:
-        source_path = os.path.join(config.sync_folder_location, filename.strip())
+        source_path = os.path.join(sync_folder_location, filename.strip())
         dest_path = os.path.join(tmp_dir, filename.strip())
         shutil.copy2(source_path, dest_path)
     # Create a zip archive of the files in the temporary directory
@@ -45,7 +45,7 @@ def sync():
         print(missing_files)
         if len(missing_files) == 1:
             # upload file to server
-            upload_file("/uploadfile?", missing_files[0], config.sync_folder_location)
+            upload_file("/uploadfile?", missing_files[0], sync_folder_location)
         elif len(missing_files) > 1:
             # upload zip file to server
             zipfile = zip_file(missing_files)
@@ -54,7 +54,7 @@ def sync():
         # remove file locally
         for file in files:
             if file not in missing_files:
-                os.remove(os.path.join(config.sync_folder_location, file))
+                os.remove(os.path.join(sync_folder_location, file))
         time.sleep(0.5)
 
 
