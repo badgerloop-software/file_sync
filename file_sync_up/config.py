@@ -1,1 +1,1 @@
-server_url = "http://localhost:8000"
+server_url = "http://cloud.badgersolarracing.org"
