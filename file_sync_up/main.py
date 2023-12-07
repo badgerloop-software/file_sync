@@ -37,11 +37,15 @@ def sync():
 
         try:
             response = requests.post(config.server_url + "/compare_files", json={"files": files}, timeout=5)
+            missing_files = response.json()["missing"]
+        except requests.exceptions.JSONDecodeError:
+            print("Bad response from server")
+            time.sleep(0.5)
+            continue
         except Exception as e:
             print("Error Connecting to file sync Server")
             continue
 
-        missing_files = response.json()["missing"]
         print(missing_files)
         if len(missing_files) == 1:
             # upload file to server
