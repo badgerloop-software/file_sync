@@ -1,4 +1,4 @@
-import config, os, shutil, requests, binascii, zipfile, time
+import config, os, shutil, requests, binascii, zipfile, time, hashlib
 
 def download_single_file(filename: str):
     response = requests.get(config.server_url + "/file?filename=" + filename)
@@ -31,17 +31,18 @@ def sync():
         list_response = requests.get(config.server_url + "/list")
         assert list_response.status_code == 200
         all_files = list_response.json()["files"]
-        all_files = [f[0] for f in all_files] # haven't been able to integrate md5 yet
-
-        already_downloaded_files = [f for f in os.listdir(config.sync_folder_location) if os.path.isfile(os.path.join(config.sync_folder_location, f))]
-        print(already_downloaded_files)
+        
+        already_downloaded_files = []
+        for file in os.listdir(config.sync_folder_location):
+            already_downloaded_files.append([file, hashlib.md5(open(f'{config.sync_folder_location}/{file}', "rb").read()).hexdigest()])
+        print("already downloaded files:", already_downloaded_files)
         files_to_download = [f for f in all_files if f not in already_downloaded_files]
-        print(files_to_download)
+        print("files to download:", files_to_download)
 
         if len(files_to_download) == 1:
-            download_single_file(files_to_download[0])
+            download_single_file(files_to_download[0][0])
         elif len(files_to_download) > 1:
-            unzip_file(download_zip_file(files_to_download))
+            unzip_file(download_zip_file([f[0] for f in files_to_download]))
         # otherwise we have nothing to do
 
         time.sleep(0.5)
