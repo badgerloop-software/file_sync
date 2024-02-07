@@ -9,12 +9,14 @@ from typing import List
 app = FastAPI()
 
 @app.delete("/delete")
-async def delete_files(filenames: List[str]):
-    for filename in filenames:
+async def delete_files(filenames: str):
+    # Split the comma-separated filenames into a list
+    filename_list = filenames.split(',')
+    for filename in filename_list:
         file_path = os.path.join("Files", filename)
         if os.path.exists(file_path):
             os.remove(file_path)
-    return {"deleted": filenames}
+    return {"deleted": filename_list}
 
 @app.get("/files")
 async def download_files(filenames: str):

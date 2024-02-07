@@ -7,6 +7,9 @@ def download_single_file(filename: str):
     with open(config.sync_folder_location + "/" + filename, "wb+") as f:
         f.write(response.content)
 
+    # delete the file from the server
+    delete_files([filename])
+
 def download_zip_file(files_to_download: list):
     tmp_dir = "downloaded_zips/"
     os.makedirs(tmp_dir, exist_ok=True)
@@ -19,7 +22,15 @@ def download_zip_file(files_to_download: list):
     with open(local_name, "wb+") as f:
         f.write(response.content)
 
+    # delete the file(s) from the server
+    delete_files(files_to_download)
+
     return local_name
+
+def delete_files(files_to_delete: list):
+    comma_separated_list = ','.join(files_to_delete)
+    response = requests.delete(config.server_url + "/delete?filenames=" + comma_separated_list)
+    assert response.status_code == 200
 
 # gets its parameter from the return value of download_zip_file
 def unzip_file(local_name: str):
