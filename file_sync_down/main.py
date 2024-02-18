@@ -1,11 +1,13 @@
 import config, os, shutil, requests, binascii, zipfile, time, hashlib
 
-def download_single_file(filename: str):
+def download_single_file(filename: str, callback):
     response = requests.get(config.server_url + "/file?filename=" + filename)
     assert response.status_code == 200
 
     with open(config.sync_folder_location + "/" + filename, "wb+") as f:
         f.write(response.content)
+
+    callback(response.content)
 
     # delete the file from the server
     delete_files([filename])
@@ -36,9 +38,11 @@ def delete_files(files_to_delete: list):
 def unzip_file(local_name: str):
     with zipfile.ZipFile(local_name, 'r') as zip_ref:
         zip_ref.extractall(config.sync_folder_location)
+        return zip_ref.namelist()
 
-# TODO: make this take a callback that it calls when something has been downloaded
-def sync():
+# takes an optional callback to process/import data
+#   if one is not provided, x => x is basically a no-op
+def sync(callback=lambda x: x):
     while True:
         list_response = requests.get(config.server_url + "/list")
         assert list_response.status_code == 200
@@ -52,9 +56,11 @@ def sync():
         print("files to download:", files_to_download)
 
         if len(files_to_download) == 1:
-            download_single_file(files_to_download[0][0])
+            download_single_file(files_to_download[0][0], callback)
         elif len(files_to_download) > 1:
-            unzip_file(download_zip_file([f[0] for f in files_to_download]))
+            extracted_files = unzip_file(download_zip_file([f[0] for f in files_to_download]))
+            for file in extracted_files:
+                callback(file)
         # otherwise we have nothing to do
 
         time.sleep(0.5)
