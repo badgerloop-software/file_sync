@@ -37,6 +37,7 @@ def unzip_file(local_name: str):
     with zipfile.ZipFile(local_name, 'r') as zip_ref:
         zip_ref.extractall(config.sync_folder_location)
 
+# TODO: make this take a callback that it calls when something has been downloaded
 def sync():
     while True:
         list_response = requests.get(config.server_url + "/list")
