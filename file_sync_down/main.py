@@ -63,7 +63,8 @@ def sync(callback=lambda x: x):
         elif len(files_to_download) > 1:
             extracted_files = unzip_file(download_zip_file([f[0] for f in files_to_download]))
             for file in extracted_files:
-                callback(file) # TODO check whether this gets the DATA or just a file handle
+                with open(fs_config.sync_folder_location + "/" + file, "rb") as f:
+                    callback(f.read())
         # otherwise we have nothing to do
 
         time.sleep(0.5)
