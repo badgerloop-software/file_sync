@@ -3,7 +3,7 @@ import threading
 import traceback
 from . import fs_config
 
-files_to_delete=[]
+files_to_delete = []
 
 def download_single_file(filename: str, callback):
     response = requests.get(fs_config.server_url + "/file?filename=" + filename, timeout=5)
@@ -20,7 +20,6 @@ def download_zip_file(files_to_download: list):
     os.makedirs(tmp_dir, exist_ok=True)
     response = requests.post(fs_config.server_url + "/files", data=json.dumps({"filenames": files_to_download}), timeout=5)
     if response.status_code == 200:
-
         local_name = tmp_dir + binascii.b2a_hex(os.urandom(8)).decode("utf-8") + ".zip"
 
         with open(local_name, "wb+") as f:
@@ -35,7 +34,7 @@ def download_zip_file(files_to_download: list):
 def delete_files():
     global files_to_delete
     while True:
-        if(files_to_delete):
+        if files_to_delete:
             print(f"delete files: {files_to_delete}")
             try:
                 del_set = files_to_delete
@@ -61,7 +60,7 @@ def sync(callback=lambda x: x):
     t = threading.Thread(target=delete_files)
     t.setDaemon(True)
     t.start()
-    #let delete file loop run
+    # let delete file loop run
     if not os.path.exists(fs_config.sync_folder_location):
         os.makedirs(fs_config.sync_folder_location)
     while True:
@@ -69,7 +68,7 @@ def sync(callback=lambda x: x):
             list_response = requests.get(fs_config.server_url + "/list", timeout=5)
             if list_response.status_code == 200:
                 all_files = list_response.json()["files"]
-                
+
                 already_downloaded_files = []
                 for file in os.listdir(fs_config.sync_folder_location):
                     already_downloaded_files.append([file, hashlib.md5(open(f'{fs_config.sync_folder_location}/{file}', "rb").read()).hexdigest()])
