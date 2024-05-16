@@ -30,7 +30,7 @@ def download_zip_file(files_to_download: list):
         files_to_delete.extend(files_to_download)
 
         return local_name
-    return []
+    raise Exception(f"Download zip file failed with status: {response.status_code}, server returns: {response.content}")
 
 def delete_files():
     global files_to_delete
