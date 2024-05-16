@@ -8,12 +8,13 @@ files_to_delete = []
 def download_single_file(filename: str, callback):
     response = requests.get(fs_config.server_url + "/file?filename=" + filename, timeout=5)
     if response.status_code == 200:
-
         with open(fs_config.sync_folder_location + "/" + filename, "wb+") as f:
             f.write(response.content)
 
         callback(response.content)
         files_to_delete.append(filename)
+    else:
+        print(f"File sync error occurred when downloading single file with status: {response.status_code}")
 
 def download_zip_file(files_to_download: list):
     tmp_dir = "downloaded_zips/"
