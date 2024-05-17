@@ -8,20 +8,23 @@ from typing import List
 
 app = FastAPI()
 
+class FileNames(BaseModel):
+    filenames: list
+
 @app.delete("/delete")
-async def delete_files(filenames: str):
+async def delete_files(filenames: FileNames):
     # Split the comma-separated filenames into a list
-    filename_list = filenames.split(',')
+    filename_list = filenames.filenames
     for filename in filename_list:
         file_path = os.path.join("Files", filename)
         if os.path.exists(file_path):
             os.remove(file_path)
     return {"deleted": filename_list}
 
-@app.get("/files")
-async def download_files(filenames: str):
+@app.post("/files")
+async def download_files(filenames: FileNames):
     # Split the comma-separated filenames into a list
-    filename_list = filenames.split(',')
+    filename_list = filenames.filenames
     # Create a temporary directory to store the files before zipping
     tmp_dir = "temp_files"
     os.makedirs(tmp_dir, exist_ok=True)

@@ -38,27 +38,24 @@ def sync():
         try:
             response = requests.post(config.server_url + "/compare_files", json={"files": files}, timeout=5)
             missing_files = response.json()["missing"]
+
+            print(missing_files)
+            if len(missing_files) == 1:
+                # upload file to server
+                upload_file("/uploadfile?", missing_files[0], sync_folder_location)
+            elif len(missing_files) > 1:
+                # upload zip file to server
+                zipfile = zip_file(missing_files)
+                upload_file("/uploadzip?", zipfile)
+                os.remove(zipfile)
+            # remove file locally
+            for file in files:
+                if file not in missing_files:
+                    os.remove(os.path.join(sync_folder_location, file))
         except requests.exceptions.JSONDecodeError:
             print("Bad response from server")
-            time.sleep(0.5)
-            continue
         except Exception as e:
             print("Error Connecting to file sync Server")
-            continue
-
-        print(missing_files)
-        if len(missing_files) == 1:
-            # upload file to server
-            upload_file("/uploadfile?", missing_files[0], sync_folder_location)
-        elif len(missing_files) > 1:
-            # upload zip file to server
-            zipfile = zip_file(missing_files)
-            upload_file("/uploadzip?", zipfile)
-            os.remove(zipfile)
-        # remove file locally
-        for file in files:
-            if file not in missing_files:
-                os.remove(os.path.join(sync_folder_location, file))
         time.sleep(0.5)
 
 
